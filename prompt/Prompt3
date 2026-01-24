@@ -1,0 +1,14 @@
+# 依頼：Local MCPのZapierを強制認識してアップロードを完遂してください
+
+現在、プロジェクト内に .mcp.json が存在しないため「Zapier未接続」と表示されていますが、PC全体のグローバル設定（Local MCP）には `zapier` が登録されています。以下の手順で処理を完遂してください。
+
+1. **Local MCPの確認**:
+   グローバル設定（~/.claude.json）を参照し、`zapier` サーバーが利用可能であることを確認してください。もしリストにない場合は、`https://mcp.zapier.com/api/v1/connect` を使ってその場で再登録してください。
+
+2. **アップロードの実行**:
+   登録された `zapier` サーバーの `google_drive_create_file_from_text` ツールを使用してください。
+   - 対象ファイル: entries/2026-01-23-2100-expat-workstyle-reflection.md
+   - 保存先フォルダ: daily_sharings
+
+3. **完了報告**:
+   Google Driveへの書き込みに成功したら、File IDとURLを報告してください。

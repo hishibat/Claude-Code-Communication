@@ -1,0 +1,16 @@
+# 依頼：グローバル設定の強制適用とGoogle Drive保存の完遂
+
+現在「Zapier MCPが接続されていない」と判定されていますが、以前のセッションで `C:\Users\hishi\.claude.json`（グローバル設定）に `zapier` を登録済みです。以下の手順で強制的に同期して、作業を完了させてください。
+
+## 1. グローバル設定の強制リロード
+- `~/.claude.json` を再読み込みし、`Local MCPs` セクションに `zapier` が存在することを確認してください。
+- もし見当たらない、あるいは読み取りに失敗する場合は、即座に以下のコマンドを実行して再登録してください：
+  `claude mcp add --transport http zapier https://mcp.zapier.com/api/v1/connect`
+
+## 2. 認証と接続の確認
+- `/mcp` メニューの状態を再取得し、`zapier` が `✔ connected` であることを確認してください。
+- 認証が必要な場合は、直ちに `Authenticate` ツールを起動するよう私に促してください。
+
+## 3. ファイルのアップロード
+- 接続確認後、ローカルにある `entries/2026-01-23-2100-expat-workstyle-reflection.md` を Google Drive の `daily_sharings` フォルダへアップロードしてください。
+- 完了後、保存されたファイルの URL を報告してください。

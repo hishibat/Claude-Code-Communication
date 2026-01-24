@@ -1,0 +1,21 @@
+# 依頼：MCP設定の完全修復（npx fetchを回避する固定設定への移行）
+
+現在、npx経由の全サーバーが failed になっています。デバッグログから、NPMの認証エラー（expired token）によりパッケージの取得に失敗していることが判明しています。
+以下の手順で、外部取得に依存しない「固定パス設定」に切り替えてください。
+
+## 1. グローバルインストールによる実体の固定
+まず、以下のコマンドを順次実行して、パッケージをPCに物理的にインストールしてください。
+- npm install -g @modelcontextprotocol/server-github
+- npm install -g @modelcontextprotocol/server-playwright
+- npm install -g @modelcontextprotocol/server-supabase
+
+## 2. 設定ファイル（~/.claude.json）の直接書き換え
+npx を使用せず、インストールされたバイナリを直接叩く設定に変更してください。Windowsのパス解決を確実にするため、以下の構造で更新してください。
+
+- github: command: "github-mcp-server" (またはインストールされた実パス)
+- playwright: command: "mcp-server-playwright"
+- supabase: command: "mcp-server-supabase"
+
+## 3. 動作確認とファイルのアップロード
+- 設定更新後、/mcp で全サーバーが ✔ connected になることを確認してください。
+- 完了後、本来の目的である `entries/2026-01-23-2100-expat-workstyle-reflection.md` を Google Drive の `daily_sharings` フォルダへアップロードしてください。

@@ -1,0 +1,5 @@
+# 一度削除して「枠」を空ける
+claude mcp remove github
+
+# 推奨形式（cmd /c）で再登録
+claude mcp add github "cmd /c npx -y @modelcontextprotocol/server-github"

@@ -1,0 +1,27 @@
+# 依頼：MCP設定の強制修復とファイル保存の完遂
+
+現在の /mcp リストに Local MCPs が表示されておらず、Zapierが未接続です。
+以下の手順で「設定の不整合」を解消し、保存を完了させてください。
+
+1. **グローバル設定の強制更新**:
+   - `~/.claude.json` を直接編集し、以下の設定を強制的に上書き追加してください。
+     ```json
+     {
+       "mcpServers": {
+         "zapier": {
+           "command": "npx",
+           "args": ["-y", "@modelcontextprotocol/server-zapier"],
+           "env": {
+             "ZAPIER_USER_ID": "shivahyde@gmail.com"
+           }
+         }
+       }
+     }
+     ```
+   - ※ すでに `claude mcp add` を試しているため、設定ファイルが存在しない、または壊れている可能性があります。必要に応じてファイルを新規作成・修復してください。
+
+2. **接続の再確認**:
+   - 設定更新後、`zapier` サーバーを起動し、ステータスが `connected` になるまでリトライしてください。認証（Authenticate）が必要な場合は、即座にブラウザを開くよう私に促してください。
+
+3. **アップロードの実行**:
+   - 接続完了後、ローカルの `entries/2026-01-23-2100-expat-workstyle-reflection.md` を Google Drive の `daily_sharings` フォルダへ保存してください。

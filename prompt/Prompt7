@@ -1,0 +1,23 @@
+# 依頼：MCP設定の強制リセットと正常化（最終解決）
+
+前回の修正で「Edit hook error」が発生し、設定が反映されていません。
+以下の手順で、`github`, `playwright`, `supabase` の3つを確実に `connected` にしてください。
+
+## 1. 既存設定の完全削除（強制）
+一度現在の失敗している設定を完全に消去します。
+- `claude mcp remove github`
+- `claude mcp remove playwright`
+- `claude mcp remove supabase`
+
+## 2. 設定ファイルの「直接書き換え」による修復
+Windowsでの動作を確実にするため、npx を使用せず、cmd /c 経由でグローバルインストール済みのパッケージを呼び出す設定を `~/.claude.json` に強制適用してください。
+
+以下の設定を適用してください：
+- **github**: `cmd /c npx -y @modelcontextprotocol/server-github`
+- **playwright**: `cmd /c npx -y @modelcontextprotocol/server-playwright`
+- **supabase**: `cmd /c npx -y @modelcontextprotocol/server-supabase`
+
+※ 書き込み時に再度「Edit hook error」が出る場合は、ファイルを一度 `~/.claude.json.bak` としてバックアップし、新規作成して内容を書き込んでください。
+
+## 3. 接続確認
+- `/mcp` コマンドを実行し、すべてが `✔ connected` になっていることを確認してください。
