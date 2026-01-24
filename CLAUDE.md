@@ -231,26 +231,53 @@ Daily_Sharings/{year}/{month}-{month_name}/entries/
 
 ---
 
-## Zapier MCP保存
+## Zapier MCP保存（デュアルフォーマット）
 
-保存時は以下のアクションを使用：
-- **Action**: `mcp__zapier__google_drive_create_file_from_text`
-- **Parameters**:
-  - `title`: `{YYYY-MM-DD-HHMM-slug}`（拡張子不要、Google Docsになるため）
-  - `file`: 生成したMarkdown全文
-  - `instructions`: `Save to daily_sharings folder`
-  - `convert`: `true`（**重要：Google Docs形式で保存**）
+**2ファイル同時保存**により、データ利活用とNotebookLM互換性の両方を確保する。
+
+### 保存するファイル
+
+| ファイル | 形式 | 用途 |
+|---------|------|------|
+| `{YYYY-MM-DD-HHMM-slug}.md` | Markdown | **原本**・データ利活用・Git管理・スクリプト処理 |
+| `{YYYY-MM-DD-HHMM-slug}` | Google Docs | NotebookLM閲覧・AI分析用 |
+
+### 実装方法
+
+**2つのZapier呼び出しを並列実行**する：
+
+```
+# 1. MD形式（原本）
+Action: mcp__zapier__google_drive_create_file_from_text
+Parameters:
+  title: {YYYY-MM-DD-HHMM-slug}.md
+  file: 生成したMarkdown全文
+  instructions: Save to daily_sharings folder
+  convert: false（または省略）
+
+# 2. Google Docs形式（NotebookLM用）
+Action: mcp__zapier__google_drive_create_file_from_text
+Parameters:
+  title: {YYYY-MM-DD-HHMM-slug}
+  file: 生成したMarkdown全文
+  instructions: Save to daily_sharings folder
+  convert: true
+```
 
 ### NotebookLM互換性について
 
 **重要**: NotebookLMのGoogle Driveファイルピッカーは、**Google DocsとGoogle Slidesのみ**を表示する。
-`.md`や`.txt`ファイルは認識されないため、必ず`convert: true`でGoogle Docs形式として保存すること。
 
-| 形式 | NotebookLM認識 |
-|------|---------------|
-| Google Docs | ✅ 認識される |
-| .md ファイル | ❌ フォルダが空と表示 |
-| .txt ファイル | ❌ フォルダが空と表示 |
+| 形式 | NotebookLM | データ利活用 |
+|------|-----------|-------------|
+| Google Docs | ✅ 認識される | △ エクスポート必要 |
+| .md ファイル | ❌ 表示されない | ✅ そのまま利用可能 |
+
+### 原本の定義
+
+- **MD形式が原本**（Single Source of Truth）
+- Google Docsは閲覧・分析用の派生コピー
+- 編集が必要な場合はMD形式を修正し、再度デュアル保存する
 
 ---
 
