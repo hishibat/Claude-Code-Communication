@@ -235,19 +235,26 @@ Daily_Sharings/{year}/{month}-{month_name}/entries/
 
 **2ファイル同時保存**により、データ利活用とNotebookLM互換性の両方を確保する。
 
-### 保存するファイル
+### 保存するファイル（トリプル保存）
 
-| ファイル | 形式 | 用途 |
-|---------|------|------|
-| `{YYYY-MM-DD-HHMM-slug}.md` | Markdown | **原本**・データ利活用・Git管理・スクリプト処理 |
-| `{YYYY-MM-DD-HHMM-slug}` | Google Docs | NotebookLM閲覧・AI分析用 |
+| 保存先 | 形式 | 用途 |
+|--------|------|------|
+| **ローカル** `entries/{slug}.md` | Markdown | **原本**・Git管理・ローカル分析 |
+| **Google Drive** `{slug}.md` | Markdown | クラウドバックアップ・データ利活用 |
+| **Google Drive** `{slug}` | Google Docs | NotebookLM閲覧・AI分析用 |
 
 ### 実装方法
 
-**2つのZapier呼び出しを並列実行**する：
+**3つの保存処理を実行**する：
 
 ```
-# 1. MD形式（原本）
+# 1. ローカル保存（原本）
+Tool: Write
+Parameters:
+  file_path: {project_root}/entries/{YYYY-MM-DD-HHMM-slug}.md
+  content: 生成したMarkdown全文
+
+# 2. Google Drive MD形式
 Action: mcp__zapier__google_drive_create_file_from_text
 Parameters:
   title: {YYYY-MM-DD-HHMM-slug}.md
@@ -255,13 +262,25 @@ Parameters:
   instructions: Save to daily_sharings folder
   convert: false（または省略）
 
-# 2. Google Docs形式（NotebookLM用）
+# 3. Google Drive Google Docs形式（NotebookLM用）
 Action: mcp__zapier__google_drive_create_file_from_text
 Parameters:
   title: {YYYY-MM-DD-HHMM-slug}
   file: 生成したMarkdown全文
   instructions: Save to daily_sharings folder
   convert: true
+```
+
+### ローカルフォルダ構成
+
+```
+daily_sharings/
+├── entries/                    # MDファイル保存先（Git管理）
+│   ├── 2026-01-23-2100-expat-workstyle-reflection.md
+│   ├── 2026-01-24-2330-vibe-coding-reflection.md
+│   └── ...
+├── CLAUDE.md
+└── README.md
 ```
 
 ### NotebookLM互換性について
