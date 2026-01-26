@@ -2,7 +2,7 @@
 
 ## Overview
 日々の活動・思考・課題を蓄積・分析するシステム。
-音声テキスト起こしからClaude Codeで自動整形し、Zapier MCP経由でGoogle Driveへ保存。
+音声テキスト起こしからClaude Codeで自動整形し、GitHub経由でGoogle Driveへ自動同期。
 
 ---
 
@@ -23,6 +23,37 @@
 
 ---
 
+## 必須要件（厳守）
+
+**Daily Sharing記録時は、以下の保存を必ず実行すること：**
+
+| # | 保存先 | 必須 | 方法 |
+|---|--------|------|------|
+| 1 | GitHub `entries/` | ✅ | Write → git add → commit → push |
+| 2 | Google Drive (MD + Docs) | ✅ | 自動（GitHub Actions） |
+
+### 実装方法
+
+```bash
+# 1. ファイル作成
+Tool: Write
+  file_path: entries/{YYYY-MM-DD-HHMM-slug}.md
+
+# 2. Git commit & push
+Tool: Bash
+  command: git add entries/{slug}.md && git commit -m "docs: add {slug}" && git push
+
+# 3. 結果確認（必要に応じて）
+Tool: Bash
+  command: gh run list --limit 1
+```
+
+**GitHub Actionsが失敗した場合：**
+- `gh run list` で状態を確認
+- `gh run view <run-id>` で詳細ログを確認
+
+---
+
 ## クイック入力フロー
 
 ユーザーが**明示的に記録を指示したら**、以下のフローで自動処理：
@@ -38,7 +69,7 @@
 8. サマリー生成（1-2文）
 9. タイトル生成（10-20文字）
 10. MDファイル組み立て
-11. Google Driveへ保存
+11. Git commit & push（→ GitHub ActionsでGoogle Driveへ自動同期）
 ```
 
 ---
@@ -231,56 +262,53 @@ Daily_Sharings/{year}/{month}-{month_name}/entries/
 
 ---
 
-## Zapier MCP保存（デュアルフォーマット）
+## GitHub Actions同期（デュアルフォーマット）
 
-**2ファイル同時保存**により、データ利活用とNotebookLM互換性の両方を確保する。
+**pushトリガーで自動同期**により、データ利活用とNotebookLM互換性の両方を確保する。
 
-### 保存するファイル（トリプル保存）
+### アーキテクチャ
+
+```
+[Claude Code] → Write → entries/ → git commit & push
+                                        ↓
+                              [GitHub Actions]
+                                        ↓
+                              Google Drive (MD + Docs)
+```
+
+### 保存されるファイル
 
 | 保存先 | 形式 | 用途 |
 |--------|------|------|
-| **ローカル** `entries/{slug}.md` | Markdown | **原本**・Git管理・ローカル分析 |
+| **GitHub** `entries/{slug}.md` | Markdown | **原本**・Git管理・バージョン履歴 |
 | **Google Drive** `{slug}.md` | Markdown | クラウドバックアップ・データ利活用 |
 | **Google Drive** `{slug}` | Google Docs | NotebookLM閲覧・AI分析用 |
-
-### 実装方法
-
-**3つの保存処理を実行**する：
-
-```
-# 1. ローカル保存（原本）
-Tool: Write
-Parameters:
-  file_path: {project_root}/entries/{YYYY-MM-DD-HHMM-slug}.md
-  content: 生成したMarkdown全文
-
-# 2. Google Drive MD形式
-Action: mcp__zapier__google_drive_create_file_from_text
-Parameters:
-  title: {YYYY-MM-DD-HHMM-slug}.md
-  file: 生成したMarkdown全文
-  instructions: Save to daily_sharings folder
-  convert: false（または省略）
-
-# 3. Google Drive Google Docs形式（NotebookLM用）
-Action: mcp__zapier__google_drive_create_file_from_text
-Parameters:
-  title: {YYYY-MM-DD-HHMM-slug}
-  file: 生成したMarkdown全文
-  instructions: Save to daily_sharings folder
-  convert: true
-```
 
 ### ローカルフォルダ構成
 
 ```
 daily_sharings/
+├── .github/
+│   ├── workflows/
+│   │   └── sync-to-gdrive.yml  # GitHub Actions定義
+│   └── scripts/
+│       └── upload-to-gdrive.js # アップロードスクリプト
 ├── entries/                    # MDファイル保存先（Git管理）
 │   ├── 2026-01-23-2100-expat-workstyle-reflection.md
 │   ├── 2026-01-24-2330-vibe-coding-reflection.md
 │   └── ...
 ├── CLAUDE.md
 └── README.md
+```
+
+### 同期確認コマンド
+
+```bash
+# ワークフロー実行状況確認
+gh run list --limit 3
+
+# 最新実行の詳細
+gh run view $(gh run list --limit 1 --json databaseId -q '.[0].databaseId')
 ```
 
 ### NotebookLM互換性について
@@ -294,17 +322,17 @@ daily_sharings/
 
 ### 原本の定義
 
-- **MD形式が原本**（Single Source of Truth）
+- **MD形式（GitHub）が原本**（Single Source of Truth）
 - Google Docsは閲覧・分析用の派生コピー
-- 編集が必要な場合はMD形式を修正し、再度デュアル保存する
+- 編集が必要な場合はMD形式を修正し、再度push
 
 ---
 
 ## エラーハンドリング
 
-1. **Zapier MCP接続失敗時** → 生成したMarkdownをクリップボードにコピー提案
-2. **保存失敗時** → ローカルバックアップ（`./backup/`）を提案
-3. **レート制限時** → 待機後に再試行
+1. **git push失敗時** → ネットワーク確認、`git status`で状態確認
+2. **GitHub Actions失敗時** → `gh run view`でログ確認、Secrets設定を確認
+3. **Google Drive APIエラー時** → Service Account権限、フォルダ共有設定を確認
 
 ---
 

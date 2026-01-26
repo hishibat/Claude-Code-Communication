@@ -1,0 +1,13 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup (Git管理不要)
+backup/
+
+# Logs
+log/
+
+# Temporary files
+*.tmp
+*.bak
